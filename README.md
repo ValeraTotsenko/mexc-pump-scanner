@@ -40,8 +40,7 @@
 | Качество данных    | Дропает пару, если спред > 1.5 % или объём < \$20 k / 5 мин.           |                                |
 | Безопасность       | Все API-ключи в `.env`, доступ к Telegram-боту — по `ALLOWED_IDS`.     |                                |
 | Надёжность         | Авто-retry при HTTP 429/418, журнал ошибок в `stderr` + ротация.       |                                |
-| Развёртывание      | \`curl …/deploy.sh                                                     | bash\` — единственная команда. |
-| Логи               | 7 дней хранится локально, далее архивируется скриптом `log_rotate.sh`. |                                |
+| Развёртывание      | `curl -fsSL https://raw.githubusercontent.com/you/mexc-pump-scanner/main/deploy.sh | bash -s -- <ENV_URL>` — единственная команда. |
 
 ---
 
@@ -200,11 +199,20 @@ services:
 
 ```bash
 #!/usr/bin/env bash
-sudo apt update && sudo apt -y install docker.io docker-compose
+# installs Docker Compose, pulls secrets and starts the container
+ENV_URL=$1
+sudo apt update
+sudo apt -y install docker.io docker-compose docker-compose-plugin git curl
 git clone https://github.com/you/mexc-pump-scanner.git
 cd mexc-pump-scanner
-cp .env.example .env   # пользователь правит ключи
-sudo docker-compose up -d --build
+curl -fsS "$ENV_URL" -o .env
+sudo docker compose up -d --build
+```
+
+После выполнения можно проверить состояние контейнера командой:
+
+```bash
+docker compose ps
 ```
 
 ---

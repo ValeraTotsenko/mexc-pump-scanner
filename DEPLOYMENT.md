@@ -61,15 +61,19 @@ Build and start via `docker-compose`:
 docker-compose up -d --build
 ```
 
-The container uses the variables from your `.env` file. The helper script
-`deploy.sh` installs Docker, downloads this file and then starts the stack.
-Supply the URL containing your secrets via the `ENV_URL` environment variable or
-as the first argument:
+The container uses variables from your `.env` file. The helper script
+`deploy.sh` installs Docker Compose, downloads this file and starts the stack.
+Run it in one command by piping the script from GitHub and passing the URL to
+your secrets:
 
 ```bash
-ENV_URL=https://host/your.env ./deploy.sh
-# or
-./deploy.sh https://host/your.env
+curl -fsSL https://raw.githubusercontent.com/you/mexc-pump-scanner/main/deploy.sh | bash -s -- https://host/your.env
+```
+
+Verify that the service is running:
+
+```bash
+docker compose ps
 ```
 
 ## Hardware requirements
