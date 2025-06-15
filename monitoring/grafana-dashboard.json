@@ -1,0 +1,33 @@
+{
+  "dashboard": {
+    "title": "Pump Scanner",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Pipeline Latency ms",
+        "targets": [
+          {"expr": "histogram_quantile(0.9, rate(latency_pipeline_ms_bucket[5m]))"}
+        ],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "graph",
+        "title": "Websocket Reconnects",
+        "targets": [
+          {"expr": "rate(ws_reconnects_total[5m])"}
+        ],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "graph",
+        "title": "Signals Per Hour",
+        "targets": [
+          {"expr": "signals_per_hour"}
+        ],
+        "datasource": "Prometheus"
+      }
+    ],
+    "schemaVersion": 37,
+    "version": 0
+  }
+}
