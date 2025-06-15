@@ -6,7 +6,6 @@ def test_is_candidate_pass():
     fv = FeatureVector(
         symbol="ABC",
         vsr=6.0,
-        vc=1.0,
         pm=0.05,
         obi=0.3,
         cum_depth_delta=0.0,
@@ -28,7 +27,6 @@ def test_is_candidate_fail():
     fv = FeatureVector(
         symbol="ABC",
         vsr=4.0,
-        vc=1.0,
         pm=0.01,
         obi=0.1,
         cum_depth_delta=0.0,

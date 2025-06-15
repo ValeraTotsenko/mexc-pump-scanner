@@ -55,7 +55,6 @@ class RollingWindow:
 class FeatureVector:
     symbol: str
     vsr: float
-    vc: float
     pm: float
     obi: float
     cum_depth_delta: float
@@ -72,7 +71,6 @@ class FeatureEngine:
         self._vol_6h: Dict[str, RollingWindow] = {}
         self._price_vol_5m: Dict[str, RollingWindow] = {}
         self._vol1m: Dict[str, RollingWindow] = {}
-        self._vol1m_hist: Dict[str, RollingWindow] = {}
         self._depth_net: Dict[str, RollingWindow] = {}
         self._first_seen: Dict[str, float] = {}
 
@@ -98,15 +96,12 @@ class FeatureEngine:
         w6h = self._vol_6h.setdefault(symbol, RollingWindow(21600))
         pv5 = self._price_vol_5m.setdefault(symbol, RollingWindow(300))
         vol1 = self._vol1m.setdefault(symbol, RollingWindow(60))
-        vol1_hist = self._vol1m_hist.setdefault(symbol, RollingWindow(300))
         depth_w = self._depth_net.setdefault(symbol, RollingWindow(180))
 
         for w in (w5, w6h, vol1):
             w.append(now, vol)
         pv5.append(now, np.array([price * vol, vol]))
 
-        vol1_sum = vol1.sum()
-        vol1_hist.append(now, vol1_sum)
 
         depth = client.get_cum_depth(symbol) or (0.0, 0.0)
         net = depth[0] - depth[1]
@@ -118,8 +113,6 @@ class FeatureEngine:
         median_6h = float(w6h.median())
         vsr = vol_5m / median_6h if median_6h > 0 else 0.0
 
-        max_vol1m = float(vol1_hist.max())
-        vc = max_vol1m / vol_5m if vol_5m > 0 else 0.0
 
         pv_vals = pv5.values()
         if pv_vals.size:
@@ -152,7 +145,6 @@ class FeatureEngine:
         return FeatureVector(
             symbol=symbol,
             vsr=float(vsr),
-            vc=float(vc),
             pm=float(pm),
             obi=float(obi),
             cum_depth_delta=cum_depth_delta,

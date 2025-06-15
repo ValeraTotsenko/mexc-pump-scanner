@@ -1,12 +1,7 @@
 import asyncio
-import hmac
-import hashlib
 import logging
 import time
-from urllib.parse import urlencode
-from typing import Any, Dict, Iterable
-
-import aiohttp
+from typing import Iterable
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -91,7 +86,6 @@ class AlertBot:
         if data.startswith("buy_"):
             sid = int(data[4:])
             save_action(sid, "buy")
-            # await self.place_order(symbol)
             await update.callback_query.answer("Buy disabled", show_alert=True)
         elif data.startswith("skip_"):
             sid = int(data[5:])
@@ -100,29 +94,6 @@ class AlertBot:
         else:
             await update.callback_query.answer()
 
-    # async def place_order(self, symbol: str) -> None:
-    #     cfg = self.config
-    #     stake = cfg.get("scanner", {}).get("stake_usdt", 0)
-    #     rest_url = cfg.get("mexc", {}).get("rest_url", "") + "/api/v3/order"
-    #     params = {
-    #         "symbol": symbol,
-    #         "side": "BUY",
-    #         "type": "MARKET",
-    #         "quoteOrderQty": stake,
-    #         "timestamp": int(time.time() * 1000),
-    #     }
-    #     query = urlencode(params)
-    #     secret = cfg.get("mexc", {}).get("api_secret", "")
-    #     signature = hmac.new(secret.encode(), query.encode(), hashlib.sha256).hexdigest()
-    #     params["signature"] = signature
-    #     headers = {"X-MEXC-APIKEY": cfg.get("mexc", {}).get("api_key", "")}
-    #     async with aiohttp.ClientSession() as session:
-    #         async with session.post(rest_url, params=params, headers=headers) as resp:
-    #             text = await resp.text()
-    #             if resp.status != 200:
-    #                 logger.error("Order failed: %s %s", resp.status, text)
-    #             else:
-    #                 logger.info("Order placed: %s", text)
 
     async def send_alert(self, fv: FeatureVector, prob: float, start_ts: float) -> None:
         LATENCY.observe((time.time() - start_ts) * 1000)
