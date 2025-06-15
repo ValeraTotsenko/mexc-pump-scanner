@@ -35,10 +35,17 @@ THRESH_LISTING_AGE=900
 
 ## Running locally
 
-1. Install Python 3.12 and `pip`.
-2. Install dependencies: `pip install -r requirements.txt`.
-3. Copy `.env.example` to `.env` and edit values.
-4. Start the bot for selected pairs:
+1. Install Python 3.11+ and `pip`.
+2. Create and activate a virtual environment:
+
+   ```bash
+   python3.11 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+3. Install dependencies: `pip install -r requirements.txt`.
+4. Copy `.env.example` to `.env` and edit values.
+5. Start the bot for selected pairs:
 
 ```bash
 python -m scanner.bot BTC_USDT ETH_USDT
@@ -54,7 +61,16 @@ Build and start via `docker-compose`:
 docker-compose up -d --build
 ```
 
-The container uses the variables from your `.env` file. The helper script `deploy.sh` installs Docker and runs these commands on a fresh VPS.
+The container uses the variables from your `.env` file. The helper script
+`deploy.sh` installs Docker, downloads this file and then starts the stack.
+Supply the URL containing your secrets via the `ENV_URL` environment variable or
+as the first argument:
+
+```bash
+ENV_URL=https://host/your.env ./deploy.sh
+# or
+./deploy.sh https://host/your.env
+```
 
 ## Hardware requirements
 
