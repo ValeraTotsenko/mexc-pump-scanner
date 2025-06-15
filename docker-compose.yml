@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  scanner:
+    build: .
+    env_file: .env
+    restart: always
+    volumes:
+      - ./data:/app/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
