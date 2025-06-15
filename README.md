@@ -93,7 +93,7 @@
 
 ### 6. Компоненты и их интерфейсы
 
-#### 6.1 Collector (`collector.py`)
+#### 6.1 Collector (`scanner/collector.py`)
 
 * **Класс** `MexcWSClient`
 
@@ -104,12 +104,12 @@
   * `get_best(pair)` — лучшая цена bid/ask
   * `get_cum_depth(pair)` — суммарный объём внутри ±10 bps
 
-#### 6.2 Feature Engine (`features.py`)
+#### 6.2 Feature Engine (`scanner/features.py`)
 
 * `RollingWindow(size_sec)` реализован на `collections.deque` + NumPy vector ops.
 * Возвращает `FeatureVector` (`namedtuple`) с флагом `ready`.
 
-#### 6.3 RuleFilter (`rules.py`)
+#### 6.3 RuleFilter (`scanner/rules.py`)
 
 ```python
 def is_candidate(fv: FeatureVector, cfg: Dict) -> bool:
@@ -122,7 +122,7 @@ def is_candidate(fv: FeatureVector, cfg: Dict) -> bool:
     )
 ```
 
-#### 6.4 Model (`model.py`)
+#### 6.4 Model (`scanner/model.py`)
 
 * Однофайловая `LogisticRegression` (pickle \~ 1 KB).
 * `predict_proba(fv: FeatureVector) -> float`.
@@ -199,15 +199,16 @@ services:
 
 ```bash
 #!/usr/bin/env bash
-# installs Docker Compose, pulls secrets and starts the container
-ENV_URL=$1
-sudo apt update
-sudo apt -y install docker.io docker-compose docker-compose-plugin git curl
-git clone https://github.com/you/mexc-pump-scanner.git
+# installs Docker if needed, fetches secrets and runs the service
+ENV_URL=${1:-$ENV_URL}
+git clone https://github.com/you/mexc-pump-scanner.git || true
 cd mexc-pump-scanner
 curl -fsS "$ENV_URL" -o .env
 sudo docker compose up -d --build
 ```
+
+Скрипт ставит Docker при необходимости и может создать unit `systemd`, чтобы
+контейнер автоматически перезапускался после перезагрузки.
 
 После выполнения можно проверить состояние контейнера командой:
 
@@ -226,6 +227,9 @@ docker compose ps
 | **stderr**                   | исключения Python, stack-trace → `alerts.log`                    |
 
 Экспорт метрик доступен на `http://localhost:8000/metrics`.
+
+Мониторинг не затронут реорганизацией: JSON-дэшборд лежит в `monitoring/` и
+метрики по-прежнему слушают на том же порту.
 
 ---
 

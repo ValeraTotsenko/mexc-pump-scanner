@@ -47,13 +47,15 @@ THRESH_LISTING_AGE=900
 
 3. Install dependencies: `pip install -r requirements.txt`.
 4. Copy `.env.example` to `.env` and edit values.
-5. Start the bot for selected pairs:
+5. Start the bot for selected pairs and run tests if desired:
 
 ```bash
 python -m scanner.bot BTC_USDT ETH_USDT
+pytest -q
 ```
 
 Prometheus metrics will be exposed on `http://localhost:8000/metrics`.
+The Grafana dashboard JSON remains in `monitoring/` and works as before.
 
 ## Running with Docker
 
@@ -64,7 +66,9 @@ docker-compose up -d --build
 ```
 
 The container uses variables from your `.env` file. The helper script
-`deploy.sh` installs Docker Compose, downloads this file and starts the stack.
+`deploy.sh` installs Docker if missing, clones the repo, fetches the `.env`
+from the provided URL and runs `docker compose up -d --build`. It can also
+create a systemd unit so the service restarts automatically.
 Run it in one command by piping the script from GitHub and passing the URL to
 your secrets:
 
