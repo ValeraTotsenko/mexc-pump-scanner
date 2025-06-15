@@ -98,7 +98,10 @@
 
   * `connect()` — открывает N сокетов, автосплит по 30 стримов ([mexcdevelop.github.io][1], [mexc.com][2]).
   * `subscribe(pair)` / `unsubscribe(pair)`
+  * авто-отписка при `spread > 1.5 %` или `volume_5m < $20k`
   * `yield ticks` → `Tick(kline: dict, depth: dict)`
+  * `get_best(pair)` — лучшая цена bid/ask
+  * `get_cum_depth(pair)` — суммарный объём внутри ±10 bps
 
 #### 6.2 Feature Engine (`features.py`)
 

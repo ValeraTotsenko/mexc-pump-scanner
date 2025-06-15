@@ -1,8 +1,9 @@
 import asyncio
 import json
 import logging
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, AsyncIterator, Any
+from dataclasses import dataclass
+from typing import Dict, List, Optional, AsyncIterator, Any, Tuple
+from collections import deque
 
 import websockets
 
@@ -42,6 +43,8 @@ class MexcWSClient:
         self._last_send: Dict[int, float] = {}
         self._kline_cache: Dict[str, Dict[str, Any]] = {}
         self._depth_cache: Dict[str, Dict[str, Any]] = {}
+        self._order_books: Dict[str, Dict[str, Dict[float, float]]] = {}
+        self._volume_window: Dict[str, deque] = {}
 
     async def _throttled_send(self, conn_idx: int, msg: dict) -> None:
         async with self._send_lock:
@@ -113,6 +116,8 @@ class MexcWSClient:
             )
         self._kline_cache.pop(symbol, None)
         self._depth_cache.pop(symbol, None)
+        self._order_books.pop(symbol, None)
+        self._volume_window.pop(symbol, None)
 
     async def _reader(self, conn_idx: int) -> None:
         ws = self._conns[conn_idx]
@@ -146,9 +151,13 @@ class MexcWSClient:
         if "kline" in stream:
             symbol = data.get("symbol") or data.get("s")
             self._kline_cache[symbol] = data
+            self._update_kline(symbol, data)
+            await self._check_quality(symbol)
         elif "depth" in stream:
             symbol = data.get("symbol") or data.get("s")
             self._depth_cache[symbol] = data
+            self._update_depth(symbol, data)
+            await self._check_quality(symbol)
 
     async def yield_ticks(self) -> AsyncIterator[Tick]:
         """Async generator yielding merged ticks."""
@@ -169,4 +178,90 @@ class MexcWSClient:
                 yield tick
         finally:
             merge_task.cancel()
+
+    def _update_depth(self, symbol: str, data: Dict[str, Any]) -> None:
+        """Update L10 order book from depth diff message."""
+        book = self._order_books.setdefault(symbol, {"bids": {}, "asks": {}})
+        bids = data.get("b") or data.get("bids") or []
+        asks = data.get("a") or data.get("asks") or []
+        for price, qty in bids:
+            p, q = float(price), float(qty)
+            if q == 0:
+                book["bids"].pop(p, None)
+            else:
+                book["bids"][p] = q
+        for price, qty in asks:
+            p, q = float(price), float(qty)
+            if q == 0:
+                book["asks"].pop(p, None)
+            else:
+                book["asks"][p] = q
+        sorted_bids = sorted(book["bids"].items(), key=lambda x: -x[0])
+        sorted_asks = sorted(book["asks"].items(), key=lambda x: x[0])
+        if sorted_bids and sorted_asks:
+            mid = (sorted_bids[0][0] + sorted_asks[0][0]) / 2
+            bid_min = mid * 0.999
+            ask_max = mid * 1.001
+            sorted_bids = [b for b in sorted_bids if b[0] >= bid_min][:10]
+            sorted_asks = [a for a in sorted_asks if a[0] <= ask_max][:10]
+        book["bids"] = dict(sorted_bids)
+        book["asks"] = dict(sorted_asks)
+
+    def _update_kline(self, symbol: str, data: Dict[str, Any]) -> None:
+        """Track 5m quote volume using 1s kline updates."""
+        vol = float(
+            data.get("quoteVol")
+            or data.get("q")
+            or data.get("quote_volume")
+            or data.get("v")
+            or 0.0
+        )
+        dq = self._volume_window.setdefault(symbol, deque())
+        now = asyncio.get_running_loop().time()
+        dq.append((now, vol))
+        while dq and now - dq[0][0] > 300:
+            dq.popleft()
+
+    def get_best(self, symbol: str) -> Optional[Tuple[Tuple[float, float], Tuple[float, float]]]:
+        book = self._order_books.get(symbol)
+        if not book or not book["bids"] or not book["asks"]:
+            return None
+        best_bid = max(book["bids"].items(), key=lambda x: x[0])
+        best_ask = min(book["asks"].items(), key=lambda x: x[0])
+        return best_bid, best_ask
+
+    def get_cum_depth(self, symbol: str) -> Optional[Tuple[float, float]]:
+        best = self.get_best(symbol)
+        if not best:
+            return None
+        book = self._order_books[symbol]
+        (bid_p, _), (ask_p, _) = best
+        mid = (bid_p + ask_p) / 2
+        depth_bid = 0.0
+        for p, q in sorted(book["bids"].items(), key=lambda x: -x[0]):
+            if p < mid * 0.999:
+                break
+            depth_bid += q
+        depth_ask = 0.0
+        for p, q in sorted(book["asks"].items(), key=lambda x: x[0]):
+            if p > mid * 1.001:
+                break
+            depth_ask += q
+        return depth_bid, depth_ask
+
+    async def _check_quality(self, symbol: str) -> None:
+        best = self.get_best(symbol)
+        if not best:
+            return
+        (bid_p, _), (ask_p, _) = best
+        spread = (ask_p - bid_p) / ((ask_p + bid_p) / 2)
+        volume = sum(v for _, v in self._volume_window.get(symbol, []))
+        if spread > 0.015 or volume < 20000:
+            logger.info(
+                "Dropping %s due to data quality (spread %.4f vol %.1f)",
+                symbol,
+                spread,
+                volume,
+            )
+            await self.unsubscribe(symbol)
 
