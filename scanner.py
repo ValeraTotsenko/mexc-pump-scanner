@@ -1,6 +1,4 @@
-import asyncio
 from typing import AsyncIterator, Dict, Any
-
 from collector import MexcWSClient
 from features import FeatureEngine, FeatureVector
 from rules import is_candidate
@@ -21,9 +19,10 @@ class Scanner:
     def thresholds(self) -> Dict[str, Any]:
         return get_thresholds()
 
-    async def run(self) -> AsyncIterator[tuple[FeatureVector, float]]:
+    async def run(self) -> AsyncIterator[tuple[FeatureVector, float, float]]:
         await self.client.connect()
         async for tick in self.client.yield_ticks():
+            start_ts = tick.ts
             fv = self.engine.update(tick, self.client)
             if not fv.ready:
                 continue
@@ -31,7 +30,7 @@ class Scanner:
                 continue
             prob = self.model.predict_proba(fv)
             if prob >= self.config['scanner']['prob_threshold']:
-                yield fv, prob
+                yield fv, prob, start_ts
 
     def reload_thresholds(self) -> None:
         reload_config()

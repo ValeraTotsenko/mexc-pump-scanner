@@ -20,6 +20,7 @@ from config import load_config, reload_config
 from scanner import Scanner
 from features import FeatureVector
 from storage import save_signal, save_action
+from metrics import LATENCY, SIGNALS_TOTAL, start_metrics_server
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ class AlertBot:
         self.config = load_config()
         self.allowed_ids = set(self.config.get("telegram", {}).get("allowed_ids", []))
         self.scanner = Scanner(list(symbols))
+        start_metrics_server()
         self.app = Application.builder().token(self.config["telegram"]["token"]).build()
 
         self.app.add_handler(CommandHandler("start", self.cmd_start))
@@ -120,7 +122,9 @@ class AlertBot:
     #             else:
     #                 logger.info("Order placed: %s", text)
 
-    async def send_alert(self, fv: FeatureVector, prob: float) -> None:
+    async def send_alert(self, fv: FeatureVector, prob: float, start_ts: float) -> None:
+        LATENCY.observe((time.time() - start_ts) * 1000)
+        SIGNALS_TOTAL.inc()
         text = (
             f"\ud83d\ude80 *{fv.symbol}*  — VSR {fv.vsr:.1f}  PM {fv.pm:.2%}  Prob {prob:.2f}\n"
             f"Time: {time.strftime('%H:%M:%S')}"
@@ -143,8 +147,8 @@ class AlertBot:
             )
 
     async def _scanner_loop(self) -> None:
-        async for fv, prob in self.scanner.run():
-            await self.send_alert(fv, prob)
+        async for fv, prob, ts in self.scanner.run():
+            await self.send_alert(fv, prob, ts)
 
     async def run(self) -> None:
         task = asyncio.create_task(self._scanner_loop())

@@ -215,6 +215,8 @@ sudo docker-compose up -d --build
 | **Grafana dashboard** (json) | график сигналов, CPU/RAM, WS-traffic.                            |
 | **stderr**                   | исключения Python, stack-trace → `alerts.log`                    |
 
+Экспорт метрик доступен на `http://localhost:8000/metrics`.
+
 ---
 
 ### 9. Тесты и приёмка
