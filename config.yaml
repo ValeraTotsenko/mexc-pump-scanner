@@ -1,0 +1,17 @@
+mexc:
+  ws_url: wss://contract.mexc.com/ws
+  rest_url: https://api.mexc.com
+  api_key: ${MEXC_KEY}
+  api_secret: ${MEXC_SECRET}
+scanner:
+  stake_usdt: 100
+  prob_threshold: 0.60
+  metrics:
+    vsr: 5
+    pm: 0.02
+    obi: 0.25
+    spread: 0.015
+    listing_age_min: 900
+telegram:
+  token: ${TG_TOKEN}
+  allowed_ids: [123456789]
