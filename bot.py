@@ -20,7 +20,8 @@ from config import load_config
 from scanner import Scanner
 from features import FeatureVector
 from storage import save_signal, save_action
-from metrics import LATENCY, SIGNALS_TOTAL, start_metrics_server
+from metrics import LATENCY, record_signal, start_metrics_server
+from logging_setup import setup_logging
 
 
 logger = logging.getLogger(__name__)
@@ -125,7 +126,7 @@ class AlertBot:
 
     async def send_alert(self, fv: FeatureVector, prob: float, start_ts: float) -> None:
         LATENCY.observe((time.time() - start_ts) * 1000)
-        SIGNALS_TOTAL.inc()
+        record_signal()
         text = (
             f"\ud83d\ude80 *{fv.symbol}*  — VSR {fv.vsr:.1f}  PM {fv.pm:.2%}  Prob {prob:.2f}\n"
             f"Time: {time.strftime('%H:%M:%S')}"
@@ -164,6 +165,7 @@ def main() -> None:
     import sys
 
     symbols = sys.argv[1:]
+    setup_logging()
     bot = AlertBot(symbols)
     asyncio.run(bot.run())
 
