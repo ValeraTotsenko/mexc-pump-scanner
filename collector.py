@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, AsyncIterator, Any, Tuple
 from collections import deque
 
+from metrics import WS_RECONNECTS
+
 import websockets
 
 
@@ -18,6 +20,7 @@ class Tick:
     symbol: str
     kline: Dict[str, Any]
     depth: Dict[str, Any]
+    ts: float
 
 
 class MexcWSClient:
@@ -121,24 +124,30 @@ class MexcWSClient:
 
     async def _reader(self, conn_idx: int) -> None:
         ws = self._conns[conn_idx]
+        backoff = 1.0
         while True:
             try:
                 msg = await ws.recv()
+                backoff = 1.0
             except websockets.ConnectionClosed:
                 logger.warning("WS connection %s closed. Reconnecting", conn_idx)
+                WS_RECONNECTS.inc()
                 while True:
                     try:
+                        await asyncio.sleep(backoff)
                         ws = await websockets.connect(self._ws_url)
                         self._conns[conn_idx] = ws
                         await self._subscribe_group(conn_idx, [])
+                        backoff = 1.0
                         break
                     except Exception as exc:  # pragma: no cover - network
                         logger.error("Reconnect failed: %s", exc)
-                        await asyncio.sleep(1)
+                        backoff = min(backoff * 2, 60.0)
                 continue
             except Exception as exc:  # pragma: no cover - network
                 logger.error("WebSocket error: %s", exc)
-                await asyncio.sleep(1)
+                backoff = min(backoff * 2, 60.0)
+                await asyncio.sleep(backoff)
                 continue
             data = json.loads(msg)
             await self._handle_message(data)
@@ -169,7 +178,14 @@ class MexcWSClient:
                 for sym in list(self._kline_cache.keys() & self._depth_cache.keys()):
                     kl = self._kline_cache.pop(sym)
                     dp = self._depth_cache.pop(sym)
-                    queue.put_nowait(Tick(symbol=sym, kline=kl, depth=dp))
+                    queue.put_nowait(
+                        Tick(
+                            symbol=sym,
+                            kline=kl,
+                            depth=dp,
+                            ts=asyncio.get_running_loop().time(),
+                        )
+                    )
 
         merge_task = asyncio.create_task(merger())
         try:

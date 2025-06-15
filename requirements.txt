@@ -3,3 +3,4 @@ python-telegram-bot>=21.0
 aiohttp>=3.8
 pandas>=2.3
 pyarrow>=20.0
+prometheus_client>=0.20
