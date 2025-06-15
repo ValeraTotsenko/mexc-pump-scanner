@@ -33,6 +33,8 @@ THRESH_SPREAD=0.015
 THRESH_LISTING_AGE=900
 ```
 
+**Important:** keep `.env` private and never commit it to version control, since it contains your API keys.
+
 ## Running locally
 
 1. Install Python 3.11+ and `pip`.
