@@ -9,7 +9,6 @@ def test_logistic_model_predict(monkeypatch):
     fv = FeatureVector(
         symbol="ABC",
         vsr=5.0,
-        vc=1.0,
         pm=0.1,
         obi=0.2,
         cum_depth_delta=0.0,
