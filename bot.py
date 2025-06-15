@@ -19,6 +19,7 @@ from telegram.ext import (
 from config import load_config, reload_config
 from scanner import Scanner
 from features import FeatureVector
+from storage import save_signal, save_action
 
 
 logger = logging.getLogger(__name__)
@@ -84,11 +85,16 @@ class AlertBot:
             return
         data = update.callback_query.data
         if data.startswith("buy_"):
-            symbol = data[4:]
+            sid = int(data[4:])
+            save_action(sid, "buy")
             # await self.place_order(symbol)
             await update.callback_query.answer("Buy disabled", show_alert=True)
-        else:
+        elif data.startswith("skip_"):
+            sid = int(data[5:])
+            save_action(sid, "skip")
             await update.callback_query.answer("Ignored")
+        else:
+            await update.callback_query.answer()
 
     # async def place_order(self, symbol: str) -> None:
     #     cfg = self.config
@@ -119,11 +125,12 @@ class AlertBot:
             f"\ud83d\ude80 *{fv.symbol}*  — VSR {fv.vsr:.1f}  PM {fv.pm:.2%}  Prob {prob:.2f}\n"
             f"Time: {time.strftime('%H:%M:%S')}"
         )
+        signal_id = save_signal(fv, prob)
         keyboard = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("Buy $100", callback_data=f"buy_{fv.symbol}"),
-                    InlineKeyboardButton("Skip", callback_data=f"skip_{fv.symbol}"),
+                    InlineKeyboardButton("Buy $100", callback_data=f"buy_{signal_id}"),
+                    InlineKeyboardButton("Skip", callback_data=f"skip_{signal_id}"),
                 ]
             ]
         )
