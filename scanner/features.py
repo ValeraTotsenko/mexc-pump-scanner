@@ -5,7 +5,7 @@ from typing import Deque, Dict, Tuple, Optional
 
 import numpy as np
 
-from collector import MexcWSClient, Tick
+from .collector import MexcWSClient, Tick
 
 
 class RollingWindow:

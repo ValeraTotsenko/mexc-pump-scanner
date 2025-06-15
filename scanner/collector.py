@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, AsyncIterator, Any, Tuple
 from collections import deque
 
-from metrics import WS_RECONNECTS
+from .metrics import WS_RECONNECTS
 
 import websockets
 

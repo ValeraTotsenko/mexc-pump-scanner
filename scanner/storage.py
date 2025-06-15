@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Any
 
 import pandas as pd
 
-from features import FeatureVector
+from .features import FeatureVector
 
 _DATA_DIR = Path('data')
 _DB_PATH = _DATA_DIR / 'pump.db'

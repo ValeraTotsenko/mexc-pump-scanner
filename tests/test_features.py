@@ -1,7 +1,7 @@
 import pytest
 
-import features
-from collector import Tick
+import scanner.features as features
+from scanner.collector import Tick
 
 
 def test_rolling_window_basic():

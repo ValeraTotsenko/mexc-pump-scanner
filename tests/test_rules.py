@@ -1,5 +1,5 @@
-import rules
-from features import FeatureVector
+import scanner.rules as rules
+from scanner.features import FeatureVector
 
 
 def test_is_candidate_pass():

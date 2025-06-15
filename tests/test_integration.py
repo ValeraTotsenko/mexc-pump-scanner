@@ -1,8 +1,8 @@
 import asyncio
 
 import scanner
-from collector import Tick
-import features
+from scanner.collector import Tick
+import scanner.features as features
 import config
 
 
@@ -49,7 +49,7 @@ def test_scanner_alert_generation(monkeypatch):
         Tick(symbol="ABC", kline={"c": "101", "quoteVol": "10"}, depth={}, ts=300),
         Tick(symbol="ABC", kline={"c": "150", "quoteVol": "200"}, depth={}, ts=21600),
     ]
-    monkeypatch.setattr(scanner, "MexcWSClient", lambda symbols, ws_url=None: FakeClient(ticks))
+    monkeypatch.setattr(scanner.scanner, "MexcWSClient", lambda symbols, ws_url=None: FakeClient(ticks))
 
     class NoTrim(features.RollingWindow):
         def _trim(self, now):

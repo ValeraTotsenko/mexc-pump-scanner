@@ -1,6 +1,6 @@
 import math
-import model
-from features import FeatureVector
+import scanner.model as model
+from scanner.features import FeatureVector
 
 
 def test_logistic_model_predict(monkeypatch):

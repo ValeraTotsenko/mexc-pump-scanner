@@ -3,10 +3,10 @@ import math
 from pathlib import Path
 from typing import Dict
 
-from features import FeatureVector
+from .features import FeatureVector
 from config import get_thresholds
 
-_MODEL_PATH = Path(__file__).with_name('model.json')
+_MODEL_PATH = Path(__file__).resolve().parents[1] / 'model.json'
 
 
 class LogisticModel:

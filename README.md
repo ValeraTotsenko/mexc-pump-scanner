@@ -128,7 +128,7 @@ def is_candidate(fv: FeatureVector, cfg: Dict) -> bool:
 * Однофайловая `LogisticRegression` (pickle \~ 1 KB).
 * `predict_proba(fv: FeatureVector) -> float`.
 
-#### 6.5 AlertEngine / Telegram-бот (`bot.py`)
+#### 6.5 AlertEngine / Telegram-бот (`scanner/bot.py`)
 
 * Библиотека `python-telegram-bot≥21`.
 * **Команды:** `/start`, `/help`, `/status`, `/reload`, `/cfg key val`.
@@ -179,7 +179,7 @@ telegram:
 1. `FROM python:3.12-slim`
 2. `RUN pip install -r requirements.txt`
 3. Копирование исходного кода.
-4. `CMD ["python", "-m", "scanner"]`
+4. `CMD ["python", "-m", "scanner.bot"]`
 
 #### 7.2 docker-compose.yml
 

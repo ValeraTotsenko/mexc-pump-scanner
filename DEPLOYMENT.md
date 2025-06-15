@@ -41,7 +41,7 @@ THRESH_LISTING_AGE=900
 4. Start the bot for selected pairs:
 
 ```bash
-python bot.py BTC_USDT ETH_USDT
+python -m scanner.bot BTC_USDT ETH_USDT
 ```
 
 Prometheus metrics will be exposed on `http://localhost:8000/metrics`.
