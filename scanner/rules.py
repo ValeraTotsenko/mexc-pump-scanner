@@ -1,5 +1,5 @@
 from typing import Dict
-from features import FeatureVector
+from .features import FeatureVector
 from config import get_thresholds
 
 

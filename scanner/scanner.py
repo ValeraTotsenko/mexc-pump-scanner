@@ -1,23 +1,23 @@
 from typing import AsyncIterator, Dict, Any
-from collector import MexcWSClient
-from features import FeatureEngine, FeatureVector
-from rules import is_candidate
-from model import load_model
-from config import load_config, get_thresholds, reload_config
+from .collector import MexcWSClient
+from .features import FeatureEngine, FeatureVector
+from .rules import is_candidate
+from .model import load_model
+import config
 
 
 class Scanner:
     """Realtime pump scanner using config-driven thresholds."""
 
     def __init__(self, symbols: list[str]) -> None:
-        self.config = load_config()
+        self.config = config.load_config()
         self.client = MexcWSClient(symbols, self.config['mexc']['ws_url'])
         self.engine = FeatureEngine()
         self.model = load_model()
 
     @property
     def thresholds(self) -> Dict[str, Any]:
-        return get_thresholds()
+        return config.get_thresholds()
 
     async def run(self) -> AsyncIterator[tuple[FeatureVector, float, float]]:
         await self.client.connect()
@@ -33,5 +33,5 @@ class Scanner:
                 yield fv, prob, start_ts
 
     def reload_thresholds(self) -> None:
-        reload_config()
-        self.config = load_config()
+        config.reload_config()
+        self.config = config.load_config()

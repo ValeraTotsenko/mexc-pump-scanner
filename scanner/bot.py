@@ -17,11 +17,11 @@ from telegram.ext import (
 )
 
 from config import load_config
-from scanner import Scanner
-from features import FeatureVector
-from storage import save_signal, save_action
-from metrics import LATENCY, record_signal, start_metrics_server
-from logging_setup import setup_logging
+from .scanner import Scanner
+from .features import FeatureVector
+from .storage import save_signal, save_action
+from .metrics import LATENCY, record_signal, start_metrics_server
+from .logging_setup import setup_logging
 
 
 logger = logging.getLogger(__name__)
