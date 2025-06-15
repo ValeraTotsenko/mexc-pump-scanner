@@ -16,7 +16,7 @@ from telegram.ext import (
     ContextTypes,
 )
 
-from config import load_config, reload_config
+from config import load_config
 from scanner import Scanner
 from features import FeatureVector
 from storage import save_signal, save_action
@@ -67,8 +67,9 @@ class AlertBot:
     async def cmd_reload(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not self._is_allowed(update):
             return
-        reload_config()
+        self.scanner.reload_thresholds()
         self.config = load_config()
+        self.allowed_ids = set(self.config.get("telegram", {}).get("allowed_ids", []))
         await update.message.reply_text("Configuration reloaded")
 
     async def cmd_cfg(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
