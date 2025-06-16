@@ -38,9 +38,9 @@
 | ------------------ | ---------------------------------------------------------------------- | ------------------------------ |
 | Производительность | ≤ 25 % CPU и ≤ 250 MB RAM на **CX32 (2 vCPU / 4 GB)**.                 |                                |
 | Качество данных    | Дропает пару, если спред > 1.5 % или объём < \$20 k / 5 мин.           |                                |
-| Безопасность       | Все API-ключи в `.env`, доступ к Telegram-боту — по `ALLOWED_IDS`.     |                                |
+| Безопасность       | Все API-ключи задаются в окружении, доступ к Telegram-боту — по `ALLOWED_IDS`.     |                                |
 | Надёжность         | Авто-retry при HTTP 429/418, журнал ошибок в `stderr` + ротация.       |                                |
-| Развёртывание      | `curl -fsSL https://raw.githubusercontent.com/you/mexc-pump-scanner/main/deploy.sh | bash -s -- <ENV_URL>` — единственная команда. |
+| Развёртывание      | `curl -fsSL https://raw.githubusercontent.com/you/mexc-pump-scanner/main/deploy.sh | bash` — единственная команда. |
 
 ---
 
@@ -186,8 +186,6 @@ telegram:
 services:
   scanner:
     build: .
-    env_file: .env
-    restart: always
     volumes:
       - ./data:/app/data
     logging:
@@ -200,10 +198,8 @@ services:
 ```bash
 #!/usr/bin/env bash
 # installs Docker if needed, fetches secrets and runs the service
-ENV_URL=${1:-$ENV_URL}
 git clone https://github.com/you/mexc-pump-scanner.git || true
 cd mexc-pump-scanner
-curl -fsS "$ENV_URL" -o .env
 sudo docker compose up -d --build
 ```
 

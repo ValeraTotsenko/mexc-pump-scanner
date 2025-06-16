@@ -3,16 +3,14 @@ import re
 import yaml
 from typing import Dict, Any
 from pathlib import Path
-from dotenv import load_dotenv
 
 _CONFIG_PATH = Path(__file__).with_name('config.yaml')
 _config: Dict[str, Any] = {}
 
 
 def load_config(path: Path | str | None = None) -> Dict[str, Any]:
-    """Load configuration from YAML file with ``.env`` variables."""
+    """Load configuration from YAML file using environment variables."""
     global _config
-    load_dotenv(_CONFIG_PATH.with_name('.env'), override=False)
     cfg_path = Path(path) if path else _CONFIG_PATH
     text = cfg_path.read_text()
     text = os.path.expandvars(text)

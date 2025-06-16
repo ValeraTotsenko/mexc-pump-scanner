@@ -13,11 +13,11 @@ This document explains how to configure and run the project both locally and in 
 - `telegram.token` – Telegram bot token.
 - `telegram.allowed_ids` – comma separated list of Telegram user IDs allowed to interact.
 
-Environment variables can be referenced in the YAML using `${VAR}` syntax. See `.env.example` for all available variables.
+Environment variables can be referenced in the YAML using `${VAR}` syntax. The required names are listed below.
 
-## Environment variables
+## Required environment variables
 
-Create a `.env` file based on the example below and fill in your keys:
+Set the following variables in your shell or add them to the virtual environment activation script:
 
 ```bash
 MEXC_KEY=your_mexc_key
@@ -33,7 +33,7 @@ THRESH_SPREAD=0.015
 THRESH_LISTING_AGE=900
 ```
 
-**Important:** keep `.env` private and never commit it to version control, since it contains your API keys.
+**Important:** never commit your secrets to version control.
 
 ## Running locally
 
@@ -46,7 +46,15 @@ THRESH_LISTING_AGE=900
    ```
 
 3. Install dependencies: `pip install -r requirements.txt`.
-4. Copy `.env.example` to `.env` and edit values.
+4. Export the required variables, e.g. add them to `.venv/bin/activate`:
+
+   ```bash
+   export MEXC_KEY=your_mexc_key
+   export MEXC_SECRET=your_mexc_secret
+   export TG_TOKEN=your_telegram_token
+   export ALLOWED_IDS=123456789
+   ```
+
 5. Start the bot for selected pairs and run tests if desired:
 
 ```bash
@@ -65,15 +73,13 @@ Build and start via `docker-compose`:
 docker-compose up -d --build
 ```
 
-The container uses variables from your `.env` file. The helper script
-`deploy.sh` installs Docker if missing, clones the repo, fetches the `.env`
-from the provided URL and runs `docker compose up -d --build`. It can also
+The container reads variables from the host environment. The helper script
+`deploy.sh` installs Docker if missing, clones the repo and runs `docker compose up -d --build`. It can also
 create a systemd unit so the service restarts automatically.
-Run it in one command by piping the script from GitHub and passing the URL to
-your secrets:
+Run it in one command by piping the script from GitHub:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/you/mexc-pump-scanner/main/deploy.sh | bash -s -- https://host/your.env
+curl -fsSL https://raw.githubusercontent.com/you/mexc-pump-scanner/main/deploy.sh | bash
 ```
 
 Verify that the service is running:
