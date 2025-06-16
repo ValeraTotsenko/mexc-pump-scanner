@@ -12,7 +12,7 @@ _config: Dict[str, Any] = {}
 def load_config(path: Path | str | None = None) -> Dict[str, Any]:
     """Load configuration from YAML file with ``.env`` variables."""
     global _config
-    load_dotenv()
+    load_dotenv(_CONFIG_PATH.with_name('.env'), override=False)
     cfg_path = Path(path) if path else _CONFIG_PATH
     text = cfg_path.read_text()
     text = os.path.expandvars(text)
