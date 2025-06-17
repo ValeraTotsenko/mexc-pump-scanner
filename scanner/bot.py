@@ -128,8 +128,12 @@ class AlertBot:
         await self.app.initialize()
         await self.app.start()
         await self.app.updater.start_polling()
-        await self.app.updater.wait_until_closed()
-        task.cancel()
+        try:
+            await task
+        finally:
+            await self.app.updater.stop()
+            await self.app.stop()
+            await self.app.shutdown()
 
 
 def main() -> None:
