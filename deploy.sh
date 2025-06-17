@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# --- Load .env if present ---
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+
 # --- Logging ---
 echo_step() { echo -e "\033[32m✅ $1\033[0m"; }
 echo_info() { echo -e "\033[34m$1\033[0m"; }
