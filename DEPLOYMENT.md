@@ -17,7 +17,7 @@ Environment variables can be referenced in the YAML using `${VAR}` syntax. The r
 
 ## Required environment variables
 
-Set the following variables in your shell or add them to the virtual environment activation script:
+Set the following variables in your shell or add them to a `.env` file:
 
 ```bash
 MEXC_KEY=your_mexc_key
@@ -33,7 +33,7 @@ THRESH_SPREAD=0.015
 THRESH_LISTING_AGE=900
 ```
 
-**Important:** never commit your secrets to version control.
+Copy `.env.example` to `.env` and fill in your own values. **Important:** never commit your secrets to version control.
 
 ## Running locally
 
@@ -46,14 +46,7 @@ THRESH_LISTING_AGE=900
    ```
 
 3. Install dependencies: `pip install -r requirements.txt`.
-4. Export the required variables, e.g. add them to `.venv/bin/activate`:
-
-   ```bash
-   export MEXC_KEY=your_mexc_key
-   export MEXC_SECRET=your_mexc_secret
-   export TG_TOKEN=your_telegram_token
-   export ALLOWED_IDS=123456789
-   ```
+4. Copy `.env.example` to `.env` and fill in your credentials.
 
 5. Start the bot for selected pairs and run tests if desired:
 
