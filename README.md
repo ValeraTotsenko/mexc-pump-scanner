@@ -156,17 +156,17 @@ mexc:
   api_key: ${MEXC_KEY}
   api_secret: ${MEXC_SECRET}
 scanner:
-  stake_usdt: 100
-  prob_threshold: 0.60
+  stake_usdt: ${STAKE_USDT}
+  prob_threshold: ${PROB_THRESHOLD}
   metrics:
-    vsr: 5
-    pm: 0.02
-    obi: 0.25
-    spread: 0.015
-    listing_age_min: 900
+    vsr: ${THRESH_VSR}
+    pm: ${THRESH_PM}
+    obi: ${THRESH_OBI}
+    spread: ${THRESH_SPREAD}
+    listing_age_min: ${THRESH_LISTING_AGE}
 telegram:
   token: ${TG_TOKEN}
-  allowed_ids: [123456789]
+  allowed_ids: [${ALLOWED_IDS}]
 ```
 
 ---

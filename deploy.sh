@@ -7,7 +7,19 @@ echo_info() { echo -e "\033[34m$1\033[0m"; }
 echo_err()  { echo -e "\033[31m$1\033[0m" >&2; }
 
 # --- Проверка окружения ---
-REQUIRED_VARS=(MEXC_KEY MEXC_SECRET TG_TOKEN ALLOWED_IDS)
+REQUIRED_VARS=(
+  MEXC_KEY
+  MEXC_SECRET
+  TG_TOKEN
+  ALLOWED_IDS
+  STAKE_USDT
+  PROB_THRESHOLD
+  THRESH_VSR
+  THRESH_PM
+  THRESH_OBI
+  THRESH_SPREAD
+  THRESH_LISTING_AGE
+)
 check_env() {
   local missing=0
   for v in "$@"; do
