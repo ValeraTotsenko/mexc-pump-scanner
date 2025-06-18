@@ -41,6 +41,8 @@ class MexcWSClient:
         self._symbols = list(dict.fromkeys(symbols))
         self._ws_url = ws_url
         self._conns: List[websockets.WebSocketClientProtocol] = []
+        self._stream_counts: List[int] = []
+        self._symbol_conn: Dict[str, int] = {}
         self._tasks: List[asyncio.Task] = []
         self._send_lock = asyncio.Lock()
         self._last_send: Dict[int, float] = {}
@@ -48,6 +50,11 @@ class MexcWSClient:
         self._depth_cache: Dict[str, Dict[str, Any]] = {}
         self._order_books: Dict[str, Dict[str, Dict[float, float]]] = {}
         self._volume_window: Dict[str, deque] = {}
+
+    @property
+    def active_streams(self) -> int:
+        """Total number of active kline/depth streams."""
+        return sum(self._stream_counts)
 
     async def _throttled_send(self, conn_idx: int, msg: dict) -> None:
         async with self._send_lock:
@@ -70,6 +77,9 @@ class MexcWSClient:
             ws = await websockets.connect(self._ws_url)
             idx = len(self._conns)
             self._conns.append(ws)
+            self._stream_counts.append(len(group) * 2)
+            for sym in group:
+                self._symbol_conn[sym] = idx
             await self._subscribe_group(idx, group)
             logger.info("WS %d subscribed to %d symbols", idx, len(group))
             self._tasks.append(asyncio.create_task(self._reader(idx)))
@@ -85,9 +95,10 @@ class MexcWSClient:
 
     async def subscribe(self, symbol: str) -> None:
         """Subscribe to additional symbol."""
-        for idx, ws in enumerate(self._conns):
-            current_streams = (len(self._symbols) // len(self._conns)) * 2
-            if current_streams < self.MAX_STREAMS_PER_CONN:
+        if symbol in self._symbol_conn:
+            return
+        for idx, _ in enumerate(self._conns):
+            if self._stream_counts[idx] + 2 <= self.MAX_STREAMS_PER_CONN:
                 await self._throttled_send(
                     idx,
                     {
@@ -96,12 +107,15 @@ class MexcWSClient:
                         "id": idx,
                     },
                 )
+                self._stream_counts[idx] += 2
+                self._symbol_conn[symbol] = idx
                 self._symbols.append(symbol)
                 return
-        # need new connection
         ws = await websockets.connect(self._ws_url)
         idx = len(self._conns)
         self._conns.append(ws)
+        self._stream_counts.append(2)
+        self._symbol_conn[symbol] = idx
         await self._subscribe_group(idx, [symbol])
         self._tasks.append(asyncio.create_task(self._reader(idx)))
         self._symbols.append(symbol)
@@ -111,7 +125,8 @@ class MexcWSClient:
         if symbol not in self._symbols:
             return
         self._symbols.remove(symbol)
-        for idx, ws in enumerate(self._conns):
+        idx = self._symbol_conn.pop(symbol, None)
+        if idx is not None:
             await self._throttled_send(
                 idx,
                 {
@@ -120,6 +135,7 @@ class MexcWSClient:
                     "id": idx,
                 },
             )
+            self._stream_counts[idx] -= 2
         self._kline_cache.pop(symbol, None)
         self._depth_cache.pop(symbol, None)
         self._order_books.pop(symbol, None)
