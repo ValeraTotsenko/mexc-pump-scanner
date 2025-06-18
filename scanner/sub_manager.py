@@ -13,6 +13,8 @@ class SubscriptionManager:
         self.top_n = top_n
         self.lru_ttl_sec = lru_ttl_sec
         self.active_pairs: Dict[str, float] = {}
+        self.stream_count = 0
+        self.last_subscribed: Dict[str, float] = {}
         ACTIVE_STREAMS.set(0)
 
     async def ensure_subscribed(self, pairs: List[str]) -> None:
@@ -22,6 +24,7 @@ class SubscriptionManager:
             self.active_pairs[p] = now
             if p not in self.client._symbols and hasattr(self.client, "subscribe"):
                 await self.client.subscribe(p)
+                self.last_subscribed[p] = time.time()
         # remove expired
         for symbol, ts in list(self.active_pairs.items()):
             if now - ts > self.lru_ttl_sec:
@@ -33,3 +36,4 @@ class SubscriptionManager:
             await self.client.unsubscribe(oldest)
             self.active_pairs.pop(oldest, None)
         ACTIVE_STREAMS.set(len(self.active_pairs) * 2)
+        self.stream_count = len(self.active_pairs) * 2

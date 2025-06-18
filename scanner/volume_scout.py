@@ -90,8 +90,10 @@ class VolumeScout:
         self.rest_url = rest_url
         self.cfg = cfg
         self.history: Dict[str, Deque[Tuple[float, float, float]]] = {}
+        self.request_count = 0
 
     async def poll(self) -> List[PairStat]:
         """Return sorted pair stats."""
+        self.request_count += 1
         return await poll_stats(self.rest_url, self.history, self.cfg)
 
