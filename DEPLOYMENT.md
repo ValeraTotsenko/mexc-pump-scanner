@@ -64,7 +64,8 @@ The Grafana dashboard JSON remains in `monitoring/` and works as before.
 
 ## Running with Docker
 
-Build and start via `docker-compose`:
+Build and start via `docker-compose` (rebuild if dependencies changed):
+Dependencies like `httpx[socks]` are installed during the build stage.
 
 ```bash
 docker-compose up -d --build
