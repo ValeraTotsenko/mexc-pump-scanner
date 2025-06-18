@@ -10,6 +10,7 @@ LATENCY = Histogram(
 WS_RECONNECTS = Counter("ws_reconnects_total", "Number of websocket reconnects")
 SIGNALS_TOTAL = Counter("signals_total", "Total number of signals sent")
 SIGNALS_PER_HOUR = Gauge("signals_per_hour", "Signals generated in the last hour")
+ACTIVE_STREAMS = Gauge("active_streams", "Number of active websocket streams")
 
 _signal_ts: deque[float] = deque()
 
