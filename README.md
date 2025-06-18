@@ -151,7 +151,8 @@ def is_candidate(fv: FeatureVector, cfg: Dict) -> bool:
 
 ```yaml
 mexc:
-  ws_url: wss://contract.mexc.com/ws
+  # WebSocket Spot V3 endpoint
+  ws_url: wss://wbs.mexc.com/ws
   rest_url: https://api.mexc.com
   api_key: ${MEXC_KEY}
   api_secret: ${MEXC_SECRET}

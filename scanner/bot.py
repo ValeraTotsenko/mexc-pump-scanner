@@ -29,6 +29,7 @@ class AlertBot:
         self.config = load_config()
         self.allowed_ids = set(self.config.get("telegram", {}).get("allowed_ids", []))
         self.scanner = Scanner(list(symbols))
+        logger.info("AlertBot initialized for %d symbols", len(list(symbols)))
         start_metrics_server()
         self.app = Application.builder().token(self.config["telegram"]["token"]).build()
 
@@ -124,6 +125,7 @@ class AlertBot:
             await self.send_alert(fv, prob, ts)
 
     async def run(self) -> None:
+        logger.info("Bot event loop starting")
         task = asyncio.create_task(self._scanner_loop())
         await self.app.initialize()
         await self.app.start()
@@ -141,6 +143,7 @@ def main() -> None:
 
     symbols = sys.argv[1:]
     setup_logging()
+    logger.info("Starting AlertBot with %d symbols", len(symbols))
     bot = AlertBot(symbols)
     asyncio.run(bot.run())
 

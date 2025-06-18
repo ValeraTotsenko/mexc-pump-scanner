@@ -65,12 +65,15 @@ class MexcWSClient:
             self._symbols[i : i + self.MAX_STREAMS_PER_CONN // 2]
             for i in range(0, len(self._symbols), self.MAX_STREAMS_PER_CONN // 2)
         ]
+        logger.info("Connecting to %s (%d symbols in %d groups)", self._ws_url, len(self._symbols), len(groups))
         for group in groups:
             ws = await websockets.connect(self._ws_url)
             idx = len(self._conns)
             self._conns.append(ws)
             await self._subscribe_group(idx, group)
+            logger.info("WS %d subscribed to %d symbols", idx, len(group))
             self._tasks.append(asyncio.create_task(self._reader(idx)))
+        logger.info("All websocket connections established")
 
     async def _subscribe_group(self, conn_idx: int, symbols: List[str]) -> None:
         params = []
@@ -188,9 +191,13 @@ class MexcWSClient:
                     )
 
         merge_task = asyncio.create_task(merger())
+        first = True
         try:
             while True:
                 tick = await queue.get()
+                if first:
+                    logger.info("Data stream started")
+                    first = False
                 yield tick
         finally:
             merge_task.cancel()
