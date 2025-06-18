@@ -14,6 +14,7 @@ from telegram.ext import (
 from config import load_config
 from .symbols import fetch_all_pairs
 from .scanner import Scanner
+from .volume_scout import VolumeScout
 from .features import FeatureVector
 from .storage import save_signal, save_action
 from .metrics import LATENCY, record_signal, start_metrics_server
@@ -147,12 +148,20 @@ def main() -> None:
     cfg = load_config()
     symbols = sys.argv[1:]
     if not symbols:
-        logger.info("Fetching symbol list from MEXC")
+        scout_cfg = cfg.get("scout", {})
+        logger.info("Selecting hot pairs using Volume Scout")
         try:
-            symbols = _aio.run(fetch_all_pairs(cfg["mexc"]["rest_url"]))
+            pairs = _aio.run(VolumeScout(cfg["mexc"]["rest_url"], scout_cfg).poll())
+            symbols = [p.symbol for p in pairs]
+            logger.info("Volume Scout returned %d pairs", len(symbols))
         except Exception as exc:  # pragma: no cover - network
-            logger.error("Failed to fetch symbols: %s", exc)
-            sys.exit(1)
+            logger.error("Volume Scout failed: %s", exc)
+            logger.info("Fetching full symbol list from MEXC")
+            try:
+                symbols = _aio.run(fetch_all_pairs(cfg["mexc"]["rest_url"]))
+            except Exception as exc2:  # pragma: no cover - network
+                logger.error("Failed to fetch symbols: %s", exc2)
+                sys.exit(1)
     logger.info("Starting AlertBot with %d symbols", len(symbols))
     bot = AlertBot(symbols)
     _aio.run(bot.run())
