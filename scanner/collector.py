@@ -99,6 +99,7 @@ class MexcWSClient:
             return
         for idx, _ in enumerate(self._conns):
             if self._stream_counts[idx] + 2 <= self.MAX_STREAMS_PER_CONN:
+                logger.info("Subscribing %s on existing WS %d", symbol, idx)
                 await self._throttled_send(
                     idx,
                     {
@@ -111,12 +112,14 @@ class MexcWSClient:
                 self._symbol_conn[symbol] = idx
                 self._symbols.append(symbol)
                 return
+        logger.info("Opening new WS for %s", symbol)
         ws = await websockets.connect(self._ws_url)
         idx = len(self._conns)
         self._conns.append(ws)
         self._stream_counts.append(2)
         self._symbol_conn[symbol] = idx
         await self._subscribe_group(idx, [symbol])
+        logger.info("WS %d subscribed to %s", idx, symbol)
         self._tasks.append(asyncio.create_task(self._reader(idx)))
         self._symbols.append(symbol)
 
@@ -127,6 +130,7 @@ class MexcWSClient:
         self._symbols.remove(symbol)
         idx = self._symbol_conn.pop(symbol, None)
         if idx is not None:
+            logger.info("Unsubscribing %s from WS %d", symbol, idx)
             await self._throttled_send(
                 idx,
                 {
@@ -144,9 +148,13 @@ class MexcWSClient:
     async def _reader(self, conn_idx: int) -> None:
         ws = self._conns[conn_idx]
         backoff = 1.0
+        first = True
         while True:
             try:
                 msg = await ws.recv()
+                if first:
+                    logger.info("WS %d received first message", conn_idx)
+                    first = False
                 backoff = 1.0
             except websockets.ConnectionClosed:
                 logger.warning("WS connection %s closed. Reconnecting", conn_idx)
@@ -157,6 +165,8 @@ class MexcWSClient:
                         ws = await websockets.connect(self._ws_url)
                         self._conns[conn_idx] = ws
                         await self._subscribe_group(conn_idx, [])
+                        logger.info("WS %d reconnected", conn_idx)
+                        first = True
                         backoff = 1.0
                         break
                     except Exception as exc:  # pragma: no cover - network
