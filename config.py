@@ -36,6 +36,20 @@ def get_thresholds() -> Dict[str, float]:
     return _config.get('scanner', {}).get('metrics', {})
 
 
+def get_scout_cfg() -> Dict[str, Any]:
+    """Return volume scout configuration."""
+    if not _config:
+        load_config()
+    return _config.get('scout', {})
+
+
+def get_ws_cfg() -> Dict[str, Any]:
+    """Return websocket configuration."""
+    if not _config:
+        load_config()
+    return _config.get('ws', {})
+
+
 def reload_config(path: Path | str | None = None) -> Dict[str, Any]:
     """Reload configuration at runtime."""
     return load_config(path)

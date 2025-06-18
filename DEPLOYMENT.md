@@ -10,6 +10,10 @@ This document explains how to configure and run the project both locally and in 
 - `scanner.stake_usdt` – amount in USDT used by the *Buy* button.
 - `scanner.prob_threshold` – minimum probability required to send an alert.
 - `scanner.metrics.*` – threshold values for VSR, PM, OBI, spread and listing age.
+- `scout.min_quote_vol_usd` – minimum 24h quote volume for a pair to be tracked.
+- `scout.top_n` – number of pairs returned by the volume scout.
+- `ws.max_streams_per_conn` – max streams per WebSocket connection.
+- `ws.max_msg_per_sec` – send rate limit per connection.
 - `telegram.token` – Telegram bot token.
 - `telegram.allowed_ids` – comma separated list of Telegram user IDs allowed to interact.
 

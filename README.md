@@ -165,6 +165,12 @@ scanner:
     obi: ${THRESH_OBI}
     spread: ${THRESH_SPREAD}
     listing_age_min: ${THRESH_LISTING_AGE}
+scout:
+  min_quote_vol_usd: 100000
+  top_n: 200
+ws:
+  max_streams_per_conn: 30
+  max_msg_per_sec: 100
 telegram:
   token: ${TG_TOKEN}
   allowed_ids: [${ALLOWED_IDS}]
