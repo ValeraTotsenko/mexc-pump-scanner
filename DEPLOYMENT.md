@@ -88,7 +88,9 @@ docker compose ps
 
 ## Hardware requirements
 
-The scanner targets small VPS instances. It uses less than 25% CPU and under 250&nbsp;MB RAM on a **CX32 (2 vCPU / 4&nbsp;GB RAM)** machine. Higher loads may require more resources.
+The scanner targets small VPS instances. With Volume‑Scout enabled it typically uses under **300&nbsp;MB RAM** and about 30% CPU on a **CX32 (2 vCPU / 4&nbsp;GB RAM)** machine. Higher loads may require more resources.
+
+The service opens several WebSocket links (max 30 streams each) and polls the REST endpoint `/api/v3/ticker/24hr` every minute to adjust subscriptions.
 
 ## Limitations
 
