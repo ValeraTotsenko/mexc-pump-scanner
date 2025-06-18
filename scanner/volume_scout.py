@@ -1,7 +1,7 @@
 import time
 from dataclasses import dataclass
 from collections import deque
-from typing import Deque, Dict, List, Tuple
+from typing import Deque, Dict, List, Tuple, Any
 
 import httpx
 
@@ -81,3 +81,17 @@ async def poll_stats(rest_url: str, history: Dict[str, Deque[Tuple[float, float,
     stats.sort(key=lambda x: x.hotness, reverse=True)
     top_n = cfg.get("top_n", len(stats))
     return stats[:top_n]
+
+
+class VolumeScout:
+    """Thin wrapper around :func:`poll_stats` maintaining history."""
+
+    def __init__(self, rest_url: str, cfg: Dict[str, Any]):
+        self.rest_url = rest_url
+        self.cfg = cfg
+        self.history: Dict[str, Deque[Tuple[float, float, float]]] = {}
+
+    async def poll(self) -> List[PairStat]:
+        """Return sorted pair stats."""
+        return await poll_stats(self.rest_url, self.history, self.cfg)
+
