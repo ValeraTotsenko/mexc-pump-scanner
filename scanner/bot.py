@@ -12,6 +12,7 @@ from telegram.ext import (
 )
 
 from config import load_config
+from .symbols import fetch_all_pairs
 from .scanner import Scanner
 from .features import FeatureVector
 from .storage import save_signal, save_action
@@ -140,12 +141,21 @@ class AlertBot:
 
 def main() -> None:
     import sys
+    import asyncio as _aio
 
-    symbols = sys.argv[1:]
     setup_logging()
+    cfg = load_config()
+    symbols = sys.argv[1:]
+    if not symbols:
+        logger.info("Fetching symbol list from MEXC")
+        try:
+            symbols = _aio.run(fetch_all_pairs(cfg["mexc"]["rest_url"]))
+        except Exception as exc:  # pragma: no cover - network
+            logger.error("Failed to fetch symbols: %s", exc)
+            sys.exit(1)
     logger.info("Starting AlertBot with %d symbols", len(symbols))
     bot = AlertBot(symbols)
-    asyncio.run(bot.run())
+    _aio.run(bot.run())
 
 
 if __name__ == "__main__":
