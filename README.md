@@ -208,6 +208,7 @@ services:
 git clone https://github.com/you/mexc-pump-scanner.git || true
 cd mexc-pump-scanner
 sudo docker compose up -d --build
+# rebuild to install new dependencies like httpx[socks]
 ```
 
 Скрипт ставит Docker при необходимости и может создать unit `systemd`, чтобы
